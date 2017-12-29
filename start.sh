@@ -1,2 +1,5 @@
-python3 /home/pi/Desktop/nagase-denki/loop.py
+#!/bin/bash
+
+/usr/bin/python3.4 /home/pi/Desktop/nagase-denki/monitoring.py > /tmp/monitoring.log
+
 
