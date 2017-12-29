@@ -8,9 +8,30 @@ import smbus
 import time
 import RPi.GPIO as GPIO
 import os
+import logging
+from logging.handlers import RotatingFileHandler
+from logging import getLogger, StreamHandler, FileHandler,INFO,DEBUG
 
 
-# interval 
+#logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+#logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s %(message)s')
+#filename='/tmp/nagase.log',filemode='w', level=logging.INFO)
+formatter= logging.Formatter('%(asctime)s %(levelname)s %(name)s %(message)s')
+
+logger = logging.getLogger(__name__)
+
+fileHandler = RotatingFileHandler('/home/pi/Desktop/nagase-denki/log/monitoring.log',maxBytes=10000,backupCount=5)
+fileHandler.setLevel(DEBUG)
+fileHandler.setFormatter(formatter)
+streamHandler = StreamHandler()
+streamHandler.setLevel(DEBUG)
+streamHandler.setFormatter(formatter)
+logger.setLevel(DEBUG)
+logger.addHandler(fileHandler)
+logger.addHandler(streamHandler)
+                          
+
+# interval in sec
 LOOP_INTERVAL=10
 
 API_KEY =   'aa62d842819f547e4213edd1b9a19e92'
@@ -81,9 +102,9 @@ try:
       humidity = (humidity / 65536.0) * 100.0
       
       # Output data to screen
-      print (time.ctime())
-      print ("Relative Humidity : %.2f %%" %humidity)
-      print ("Temperature in Celsius : %.2f C" %cTemp)
+      #print (time.ctime())
+      logger.debug ("Relative Humidity : %.2f %%" %humidity)
+      logger.debug ("Temperature in Celsius : %.2f C" %cTemp)
       # print "Temperature in Fahrenheit : %.2f F" %fTemp
 
 
@@ -91,7 +112,7 @@ try:
       if (count ) >= LOOP_INTERVAL:
         #turn the LED on
         GPIO.output(10,1)
-        print('---sending data to m2x....---')
+        logger.info('---sending data to m2x....---')
         #send data to m2x
         humidity_stream.add_value(humidity)
         temp_stream.add_value(cTemp)
@@ -104,10 +125,10 @@ try:
       
     except:     
       GPIO.cleanup()
-      print('connection error! program will sleep for 5 sec before restart')
+      logger.warning('connection error! program will sleep for 5 sec before restart')
       time.sleep(5)
       
 except KeyboardInterrupt:
-  print ('program will exit since Ctl+C pressed.')
+  logger.error ('program will exit since Ctl+C pressed.')
 
 
