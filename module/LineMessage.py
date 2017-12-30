@@ -4,7 +4,7 @@ import configparser
 
 def sendMessage(message):
     import requests
-    inifile = configparser.SafeConfigParser()
+    inifile = configparser.ConfigParser()
     inifile.read('./config.ini')
 
     line_notify_token = inifile['settings']['notify_token']
