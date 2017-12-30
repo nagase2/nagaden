@@ -9,10 +9,13 @@ import time
 import RPi.GPIO as GPIO
 import os
 import logging
+import module.LineMessage as lm
+import module.CalcUtil as cu
+import datetime
 from logging.handlers import RotatingFileHandler
 from logging import getLogger, StreamHandler, FileHandler,INFO,DEBUG
 
-
+lastMsgSentTime = datetime.datetime(2017, 12, 20, 23, 55, 50, 0)
 #logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 #logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s %(message)s')
 #filename='/tmp/nagase.log',filemode='w', level=logging.INFO)
@@ -39,6 +42,7 @@ DEVICE_ID = 'df834a7986e9a52d5d28e46dd97e87df'
 count=0
 
 
+templist = []
 try:
   while True:
     try:
@@ -81,6 +85,7 @@ try:
       # Convert the data
       temp = (data0 * 256) + data1
       cTemp = (temp / 65536.0) * 165.0 - 40
+      cTemp = round(cTemp,2)
       fTemp = cTemp * 1.8 + 32
       
       # HDC1000 address, 0x40(64)
@@ -105,10 +110,14 @@ try:
       #print (time.ctime())
       logger.debug ("Relative Humidity : %.2f %%" %humidity)
       logger.debug ("Temperature in Celsius : %.2f C" %cTemp)
+
+
       # print "Temperature in Fahrenheit : %.2f F" %fTemp
 
 
       count+=1
+
+      # send a message if count surpase LOOP_INTERVAL
       if (count ) >= LOOP_INTERVAL:
         #turn the LED on
         GPIO.output(10,1)
@@ -118,12 +127,50 @@ try:
         temp_stream.add_value(cTemp)
         #reset count
         count=0
+
+      templist.append(cTemp)
+     
+      # remove a value from tempList if the size is more than 300 (5 min)
+      if len(templist) > 300:
+        templist.pop(0)
+
+      # specfy how long time supress line message last time this program send 
+      LINE_MESSAGE_INTERVAL_IN_SEC = 150
+      
+      #if cu.checkIfPastSpecificTimeInSec(lastMsgSentTime, datetime.datetime.now(),10):
+      #  logger.warn("send a line HIGH message now.")
+      #  lastMsgSentTime = datetime.datetime.now()
+      #else:
+      #  logger.warn("do not send message but temp is diffrent a lot!")
+
+      # send a message if temp is differnt more then 1C
+      if cu.checkIfHigerValueExist(templist, cTemp):
+        if cu.checkIfPastSpecificTimeInSec(lastMsgSentTime, datetime.datetime.now(),
+                                           LINE_MESSAGE_INTERVAL_IN_SEC):
+          logger.warn("send a line HIGH message now.")
+          lm.sendMessage('あついよー current temp is '+str(cTemp))
+          lastMsgSentTime = datetime.datetime.now()
+        else:
+          logger.warn("do not send message but temp is diffrent a lot!")
+
+      if cu.checkIfLowerValueExist(templist, cTemp):
+        if cu.checkIfPastSpecificTimeInSec(lastMsgSentTime, datetime.datetime.now(),
+                                           LINE_MESSAGE_INTERVAL_IN_SEC):
+          logger.warn("send a line LOW message now.")
+          lm.sendMessage('samuiよー current temp is' + str(cTemp))
+          lastMsgSentTime = datetime.datetime.now()
+        else:
+          logger.warn("do not send message but temp is diffrent a lot!")                                           
+        
+                                
+      logger.debug(len(templist))
+      logger.debug(templist)
         
       #else:
         
       #timee.sleep(LOOP_INTERVAL)
       
-    except:     
+    except ConnectionError:     
       GPIO.cleanup()
       logger.warning('connection error! program will sleep for 5 sec before restart')
       time.sleep(5)
