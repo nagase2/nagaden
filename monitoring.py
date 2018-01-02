@@ -23,7 +23,7 @@ formatter= logging.Formatter('%(asctime)s %(levelname)s %(name)s %(message)s')
 
 logger = logging.getLogger(__name__)
 
-fileHandler = RotatingFileHandler('/home/pi/Desktop/nagase-denki/log/monitoring.log',maxBytes=10000,backupCount=5)
+fileHandler = RotatingFileHandler('/home/pi/Desktop/nagase-denki/log/monitoring.log',maxBytes=1000000,backupCount=5)
 fileHandler.setLevel(DEBUG)
 fileHandler.setFormatter(formatter)
 streamHandler = StreamHandler()
