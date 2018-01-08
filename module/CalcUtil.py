@@ -23,18 +23,18 @@ def checkIfPastSpecificTimeInSec(lastTime, currentTime ,pastTimeInSec):
     #print(dif.seconds)
 
 
-#配列の中で今の温度よりも一度以上高いデータが無いか調べる
+#配列の中で今の温度よりも0.5度以上高いデータが無いか調べる
 def checkIfHigerValueExist(tempArray, currentTemp):
-    if max(tempArray) >= currentTemp+1:
+    if max(tempArray) >= currentTemp+0.5:
         return True
     else:
         return False
 
 
 
-#配列の中で今の温度よりも一度以上低いデータが無いか調べる
+#配列の中で今の温度よりも0.5度以上低いデータが無いか調べる
 def checkIfLowerValueExist(tempArray, currentTemp):
-    if min(tempArray) <= currentTemp-1:
+    if min(tempArray) <= currentTemp-0.5:
         return True
     else:
         return False
