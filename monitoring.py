@@ -51,20 +51,20 @@ try:
   from m2x.client import M2XClient
   client = M2XClient(API_KEY)
   device = client.device(DEVICE_ID)
-
+  temp_stream = device.stream('temperture')
+  humidity_stream = device.stream('humidit')
+  #set up GPIO
+  GPIO.setmode(GPIO.BCM)
+  GPIO.setup(10, GPIO.OUT)
+  
   while True:
     try:
-      temp_stream = device.stream('temperture')
-      humidity_stream = device.stream('humidit')
-      #set up GPIO
-      GPIO.setmode(GPIO.BCM)
-      GPIO.setup(10, GPIO.OUT)
+      #turn the LED on
+      GPIO.output(10,1)
       
       # Get I2C bus
       bus = smbus.SMBus(1)
     
-      #turn the LED on
-      GPIO.output(10,1)
       # HDC1000 address, 0x40(64)
       # Select configuration register, 0x02(02)
       #		0x30(48)	Temperature, Humidity enabled, Resolultion = 14-bits, Heater on
@@ -113,7 +113,7 @@ try:
 
       count+=1
 
-      '''
+      
       # send a message if count surpase LOOP_INTERVAL
       if (count ) >= LOOP_INTERVAL:
         #turn the LED on
@@ -125,6 +125,7 @@ try:
         #reset count
         count=0
 
+      '''
       # specfy how long time supress line message last time this program send 
       LINE_MESSAGE_INTERVAL_IN_SEC = 150
 

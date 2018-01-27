@@ -48,12 +48,15 @@ count=0
 
 templist = []
 try:
-
-  
+  from m2x.client import M2XClient
+  client = M2XClient(API_KEY)
+  device = client.device(DEVICE_ID)
+  GPIO.setmode(GPIO.BCM)
+  GPIO.setup(10, GPIO.OUT)
+  temp_stream = device.stream('temperture')
+  humidity_stream = device.stream('humidit')
   while True:
-    from m2x.client import M2XClient
-    client = M2XClient(API_KEY)
-    device = client.device(DEVICE_ID)
+
     try:
       
       #device = client.create_device(
@@ -61,17 +64,15 @@ try:
       #    description='Store current time ',
       #    visibility= 'public'
       #)
-      ##temp_stream = device.stream('temperture')
-      ##humidity_stream = device.stream('humidit')
+
       #set up GPIO
-      ##GPIO.setmode(GPIO.BCM)
-      ##GPIO.setup(10, GPIO.OUT)
+
       
       # Get I2C bus
       ##bus = smbus.SMBus(1)
     
       #turn the LED on
-      ##GPIO.output(10,1)
+      GPIO.output(10,1)
       # HDC1000 address, 0x40(64)
       # Select configuration register, 0x02(02)
       #		0x30(48)	Temperature, Humidity enabled, Resolultion = 14-bits, Heater on
@@ -100,7 +101,7 @@ try:
       #bus.write_byte(0x40, 0x01)
 
       #turn the LED off
-      ##GPIO.output(10,0)
+      GPIO.output(10,0)
       ##time.sleep(0.1)
       
       # HDC1000 address, 0x40(64)
@@ -132,7 +133,7 @@ try:
         #reset count
         count=0
 
-      #'''  
+      '''  
       # specfy how long time supress line message last time this program send 
       LINE_MESSAGE_INTERVAL_IN_SEC = 150
 
@@ -162,7 +163,7 @@ try:
                                 
       logger.debug(len(templist))
       logger.debug(templist)
-      #'''
+      '''
       
     except ConnectionError:     
       GPIO.cleanup()
