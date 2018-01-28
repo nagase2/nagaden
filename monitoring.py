@@ -28,7 +28,7 @@ fileHandler = RotatingFileHandler('./log/monitoring.log',maxBytes=1000000,backup
 fileHandler.setLevel(DEBUG)
 fileHandler.setFormatter(formatter)
 streamHandler = StreamHandler()
-streamHBUG)
+streamHandler.setLevel(DEBUG)
 streamHandler.setFormatter(formatter)
 logger.setLevel(DEBUG)
 logger.addHandler(fileHandler)
@@ -127,7 +127,7 @@ try:
 
       '''
       # specfy how long time supress line message last time this program send 
-      LINE_MESSAGE_INTERVAL_IN_SEC = 150
+      #LINE_MESSAGE_INTERVAL_IN_SEC = 150
 
       templist.append(cTemp)
       # remove a value from tempList if the size is more than 300 (5 min)
@@ -163,9 +163,9 @@ try:
     except:
       logger.error('Exception message::',sys.exc_info())
       time.sleep(10)
-   
+      GPIO.cleanup()
       
-except KeyboardInterrupt:
-  logger.error ('program will exit since Ctl+C pressed.')
-
+except :
+  logger.error ('end of proguram',sys.exc_info())
+  GPIO.cleanup()
 
