@@ -65,98 +65,98 @@ def checkTemp(sc):
     humidity_stream = device.stream('humidit')
     
 
-    try:
-      
-      #device = client.create_device(
-      #    name='currenttime',
-      #    description='Store current time ',
-      #    visibility= 'public'
-      #)
-
-      #set up GPIO
-
-      
-      # Get I2C bus
-      ##bus = smbus.SMBus(1)
+  
     
+    #device = client.create_device(
+    #    name='currenttime',
+    #    description='Store current time ',
+    #    visibility= 'public'
+    #)
+
+    #set up GPIO
+
+    
+    # Get I2C bus
+    ##bus = smbus.SMBus(1)
+  
+    #turn the LED on
+    GPIO.output(10,1)
+    # HDC1000 address, 0x40(64)
+    # Select configuration register, 0x02(02)
+    #		0x30(48)	Temperature, Humidity enabled, Resolultion = 14-bits, Heater on
+    #bus.write_byte_data(0x40, 0x02, 0x30)
+    
+    # HDC1000 address, 0x40(64)
+    # Send temp measurement command, 0x00(00)
+    #bus.write_byte(0x40, 0x00)
+    
+    ##time.sleep(0.1)
+    
+    # HDC1000 address, 0x40(64)
+    # Read data back, 2 bytes
+    # temp MSB, temp LSB
+    data0 = 11#bus.read_byte(0x40)
+    data1 = 12#bus.read_byte(0x40)
+    
+    # Convert the data
+    temp = (data0 * 256) + data1
+    cTemp = (temp / 65536.0) * 165.0 - 40
+    cTemp = round(cTemp,2)
+    fTemp = cTemp * 1.8 + 32
+    
+    # HDC1000 address, 0x40(64)
+    # Send humidity measurement command, 0x01(01)
+    #bus.write_byte(0x40, 0x01)
+
+    #turn the LED off
+    GPIO.output(10,0)
+    ##time.sleep(0.1)
+    
+    # HDC1000 address, 0x40(64)
+    # Read data back, 2 bytes
+    # humidity MSB, humidity LSB
+    data0 = 3#bus.read_byte(0x40)
+    data1 = 5#bus.read_byte(0x40)
+    
+    # Convert the data
+    humidity = (data0 * 256) + data1
+    humidity = (humidity / 65536.0) * 100.0
+    
+    # Output data to screen
+    #print (time.ctime())
+    logger.debug ("Relative Humidity : %.2f %%" %humidity)
+    logger.debug ("Temperature in Celsius : %.2f C" %cTemp)
+
+    # print "Temperature in Fahrenheit : %.2f F" %fTemp
+    count+=1
+
+    # send a message if count surpase LOOP_INTERVAL
+    if (count ) >= LOOP_INTERVAL:
       #turn the LED on
       GPIO.output(10,1)
-      # HDC1000 address, 0x40(64)
-      # Select configuration register, 0x02(02)
-      #		0x30(48)	Temperature, Humidity enabled, Resolultion = 14-bits, Heater on
-      #bus.write_byte_data(0x40, 0x02, 0x30)
-      
-      # HDC1000 address, 0x40(64)
-      # Send temp measurement command, 0x00(00)
-      #bus.write_byte(0x40, 0x00)
-      
-      ##time.sleep(0.1)
-      
-      # HDC1000 address, 0x40(64)
-      # Read data back, 2 bytes
-      # temp MSB, temp LSB
-      data0 = 11#bus.read_byte(0x40)
-      data1 = 12#bus.read_byte(0x40)
-      
-      # Convert the data
-      temp = (data0 * 256) + data1
-      cTemp = (temp / 65536.0) * 165.0 - 40
-      cTemp = round(cTemp,2)
-      fTemp = cTemp * 1.8 + 32
-      
-      # HDC1000 address, 0x40(64)
-      # Send humidity measurement command, 0x01(01)
-      #bus.write_byte(0x40, 0x01)
-
-      #turn the LED off
-      GPIO.output(10,0)
-      ##time.sleep(0.1)
-      
-      # HDC1000 address, 0x40(64)
-      # Read data back, 2 bytes
-      # humidity MSB, humidity LSB
-      data0 = 3#bus.read_byte(0x40)
-      data1 = 5#bus.read_byte(0x40)
-      
-      # Convert the data
-      humidity = (data0 * 256) + data1
-      humidity = (humidity / 65536.0) * 100.0
-      
-      # Output data to screen
-      #print (time.ctime())
-      logger.debug ("Relative Humidity : %.2f %%" %humidity)
-      logger.debug ("Temperature in Celsius : %.2f C" %cTemp)
-
-      # print "Temperature in Fahrenheit : %.2f F" %fTemp
-      count+=1
-
-      # send a message if count surpase LOOP_INTERVAL
-      if (count ) >= LOOP_INTERVAL:
-        #turn the LED on
-        GPIO.output(10,1)
-        logger.info('---sending data to m2x....---')
-        #send data to m2x
-        humidity_stream.add_value(humidity)
-        temp_stream.add_value(cTemp)
-        #reset count
-        count=0
+      logger.info('---sending data to m2x....---')
+      #send data to m2x
+      humidity_stream.add_value(humidity)
+      temp_stream.add_value(cTemp)
+      #reset count
+      count=0
      
 
-    except ConnectionError:     
-      GPIO.cleanup()
-      logger.warning('connection error! program will sleep for 5 sec before restart')
-      time.sleep(5)
-    except:
-      logger.error('Exception message::',sys.exc_info())
-      time.sleep(10)
-    finally:
-      s.enter(20, 1, checkTemp, (sc,))
+ # except ConnectionError:     
+ #   GPIO.cleanup()
+ #   logger.warning('connection error! program will sleep for 5 sec before restart')
+ #   time.sleep(5)
+  except Exception:
+    logger.error(sys.exc_info())
+    pass
+  
+  finally:
+    logger.info("finally.")
+    s.enter(2, 1, checkTemp, (sc,))
         
-  except KeyboardInterrupt:
-    logger.error ('program will exit since Ctl+C pressed.')
+ 
 
-
-s.enter(20, 1, checkTemp, (s,))
+s.enter(2, 1, checkTemp, (s,))
 s.run()
 
 
