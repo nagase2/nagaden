@@ -1,0 +1,13 @@
+[Unit]
+Description = NagaseDenkiWarehouseMinitoringSystem
+
+[Service]
+Type = simple
+#aWorkingDirectory=/home/pi/Desktop/nagase-denki
+Restart = always 
+ExecStart = /home/pi/Desktop/nagase-denki/start.sh
+#TimeoutStopSec=125
+#StandardOutput=/home/pi/Desktop/nagase-denki/app.log
+
+[Install]
+WantedBy=multi-user.target

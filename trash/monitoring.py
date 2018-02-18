@@ -4,7 +4,6 @@
 # This code is designed to work with the HDC1000_I2CS I2C Mini Module available from ControlEverything.com.
 # https://www.controleverything.com/content/Temperature?sku=HDC1000_I2CS#tabs-0-product_tabset-2
 print('program start !')
-import sys
 import smbus
 import time
 import RPi.GPIO as GPIO
@@ -24,7 +23,7 @@ formatter= logging.Formatter('%(asctime)s %(levelname)s %(name)s %(message)s')
 
 logger = logging.getLogger(__name__)
 
-fileHandler = RotatingFileHandler('./log/monitoring.log',maxBytes=1000000,backupCount=5)
+fileHandler = RotatingFileHandler('/home/pi/Desktop/nagase-denki/log/monitoring.log',maxBytes=1000000,backupCount=5)
 fileHandler.setLevel(DEBUG)
 fileHandler.setFormatter(formatter)
 streamHandler = StreamHandler()
@@ -38,33 +37,34 @@ logger.addHandler(streamHandler)
 # interval in sec production value should be 10
 LOOP_INTERVAL=10
 
-API_KEY = 'aa62d842819f547e4213edd1b9a19e92' #PRODUCTION
-##API_KEY = '06ed89baf1866d4aeac7f21b84e51636' #TEST ENV
-
-DEVICE_ID = 'df834a7986e9a52d5d28e46dd97e87df' #PRODUCTION
-##DEVICE_ID = 'bbdbe6fd59dfcebbe34727321b61b565' #TEST ENV
+API_KEY =   'aa62d842819f547e4213edd1b9a19e92'
+DEVICE_ID = 'df834a7986e9a52d5d28e46dd97e87df'
 count=0
 
 
 templist = []
 try:
-  from m2x.client import M2XClient
-  client = M2XClient(API_KEY)
-  device = client.device(DEVICE_ID)
-  temp_stream = device.stream('temperture')
-  humidity_stream = device.stream('humidit')
-  #set up GPIO
-  GPIO.setmode(GPIO.BCM)
-  GPIO.setup(10, GPIO.OUT)
-  
   while True:
     try:
-      #turn the LED on
-      GPIO.output(10,1)
+      from m2x.client import M2XClient
+      client = M2XClient(API_KEY)
+      device = client.device(DEVICE_ID)
+      #device = client.create_device(
+      #    name='currenttime',
+      #    description='Store current time ',
+      #    visibility= 'public'
+      #)
+      temp_stream = device.stream('temperture')
+      humidity_stream = device.stream('humidit')
+      #set up GPIO
+      GPIO.setmode(GPIO.BCM)
+      GPIO.setup(10, GPIO.OUT)
       
       # Get I2C bus
       bus = smbus.SMBus(1)
     
+      #turn the LED on
+      GPIO.output(10,1)
       # HDC1000 address, 0x40(64)
       # Select configuration register, 0x02(02)
       #		0x30(48)	Temperature, Humidity enabled, Resolultion = 14-bits, Heater on
@@ -111,9 +111,12 @@ try:
       logger.debug ("Relative Humidity : %.2f %%" %humidity)
       logger.debug ("Temperature in Celsius : %.2f C" %cTemp)
 
+
+      # print "Temperature in Fahrenheit : %.2f F" %fTemp
+
+
       count+=1
 
-      
       # send a message if count surpase LOOP_INTERVAL
       if (count ) >= LOOP_INTERVAL:
         #turn the LED on
@@ -125,14 +128,21 @@ try:
         #reset count
         count=0
 
-      '''
-      # specfy how long time supress line message last time this program send 
-      #LINE_MESSAGE_INTERVAL_IN_SEC = 150
-
       templist.append(cTemp)
+     
       # remove a value from tempList if the size is more than 300 (5 min)
       if len(templist) > 300:
         templist.pop(0)
+
+      # specfy how long time supress line message last time this program send 
+      LINE_MESSAGE_INTERVAL_IN_SEC = 150
+      
+      #if cu.checkIfPastSpecificTimeInSec(lastMsgSentTime, datetime.datetime.now(),10):
+      #  logger.warn("send a line HIGH message now.")
+      #  lastMsgSentTime = datetime.datetime.now()
+      #else:
+      #  logger.warn("do not send message but temp is diffrent a lot!")
+
       # send a message if temp is differnt more then 1C
       if cu.checkIfHigerValueExist(templist, cTemp):
         if cu.checkIfPastSpecificTimeInSec(lastMsgSentTime, datetime.datetime.now(),
@@ -151,21 +161,24 @@ try:
           lastMsgSentTime = datetime.datetime.now()
         else:
           logger.warn("do not send message but temp is diffrent a lot!")                                           
-           
+        
+                                
       logger.debug(len(templist))
       logger.debug(templist)
-      '''
+        
+      #else:
+        
+      #timee.sleep(LOOP_INTERVAL)
       
     except ConnectionError:     
       GPIO.cleanup()
       logger.warning('connection error! program will sleep for 5 sec before restart')
       time.sleep(5)
     except:
-      logger.error('Exception message::',sys.exc_info())
-      time.sleep(10)
-      GPIO.cleanup()
+      logger.error('something serious has been happend')
+      time.sleep(5)
       
-except :
-  logger.error ('end of proguram',sys.exc_info())
-  GPIO.cleanup()
+except KeyboardInterrupt:
+  logger.error ('program will exit since Ctl+C pressed.')
+
 

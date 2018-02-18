@@ -3,4 +3,4 @@
 
 # if you need to check log for nagaden, you can exec the command below.
 # it will produce certain service's logmessage from journalctl
-journalctl -f -u nagaden.service 
+sudo journalctl -f -u nagaden.service 
