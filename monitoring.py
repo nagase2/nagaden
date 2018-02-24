@@ -59,7 +59,7 @@ def checkTemp(sc):
     device = client.device(DEVICE_ID)
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(10, GPIO.OUT)
-    temp_stream = device.stream('temperture2')
+    temp_stream = device.stream('temperature2')
     humidity_stream = device.stream('humidity2')
 
    
