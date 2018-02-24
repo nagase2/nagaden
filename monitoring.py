@@ -52,6 +52,8 @@ def checkTemp(sc):
 
   templist = []
   try:
+    GPIO.cleanup()
+
     from m2x.client import M2XClient
     client = M2XClient(API_KEY)
     device = client.device(DEVICE_ID)
